@@ -24,11 +24,11 @@ def store(request, category_slug=None):
 
 
 def product_detail(request, category_slug, product_slug):
-    single_product = Product.objects.filter(
-        category__slug=category_slug,
-        slug=product_slug,
+    single_product = get_object_or_404(Product,
+        category__slug__iexact=category_slug,
+        slug__iexact=product_slug,
         is_available=True,
-    ).first()
+    )
 
     context = {
         'single_product': single_product,
