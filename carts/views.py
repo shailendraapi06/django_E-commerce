@@ -31,9 +31,42 @@ def add_cart(request, product_id):
             quantity=1
         )
         cart_item.save()
-        return HttpResponse(cart_item.product) # return a response to the user
+        
 
     return redirect('cart') # redirect to the cart page
 
-def cart(request):
-    return render(request, 'store/cart.html')
+def decrement_cart(request, product_id):
+    cart = Cart.objects.get(cart_id=_cart_id(request))
+    cart_item = CartItem.objects.get(cart=cart, product_id=product_id)
+    if cart_item.quantity > 1:
+        cart_item.quantity -= 1
+        cart_item.save()
+    else:
+        cart_item.delete()
+    return redirect('cart')
+
+def remove_cart(request, product_id):
+    cart = Cart.objects.get(cart_id=_cart_id(request))
+    cart_item = CartItem.objects.get(cart=cart, product_id=product_id)
+    cart_item.delete()
+    return redirect('cart')
+
+def cart(request, total=0, quantity=0, cart_items=None):
+    try:
+        cart = Cart.objects.get(cart_id=_cart_id(request)) # get the cart using the cart_id present in the session
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True) # get all the cart items for the cart
+        for cart_item in cart_items:
+            total += (cart_item.product.price * cart_item.quantity) # calculate the total price of the cart items
+            quantity += cart_item.quantity # calculate the total quantity of the cart items
+        tax = (2 * total)/100 # calculate the tax
+        grand_total = total + tax # add the tax to the total price
+    except objectDoesNotExist:
+        pass
+    context = {
+        'total': total,
+        'quantity': quantity,
+        'cart_items': cart_items,
+        'tax': tax,
+        'grand_total': grand_total,
+    }
+    return render(request, 'store/cart.html', context)
