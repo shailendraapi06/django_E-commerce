@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Cart, CartItem
 from store.models import Product
 
@@ -12,17 +13,11 @@ def _cart_id(request):
     return cart
 
 def add_cart(request, product_id):
-    product = Product.objects.get(id=product_id) # get the product 
-    try:
-        cart = Cart.objects.get(cart_id=_cart_id(request)) # get the cart using the cart_id present in the session
-    except Cart.DoesNotExist:
-        cart = Cart.objects.create(
-            cart_id = _cart_id(request)
-        )
-        cart.save()
+    product = Product.objects.get(id=product_id)
+    cart, created = Cart.objects.get_or_create(cart_id=_cart_id(request))
     try:
         cart_item = CartItem.objects.get(product=product, cart=cart)
-        cart_item.quantity += 1 # increase the quantity of the cart item
+        cart_item.quantity += 1
         cart_item.save()
     except CartItem.DoesNotExist:
         cart_item = CartItem.objects.create(
@@ -31,13 +26,16 @@ def add_cart(request, product_id):
             quantity=1
         )
         cart_item.save()
-        
 
     return redirect('cart') # redirect to the cart page
 
 def decrement_cart(request, product_id):
-    cart = Cart.objects.get(cart_id=_cart_id(request))
-    cart_item = CartItem.objects.get(cart=cart, product_id=product_id)
+    cart = Cart.objects.filter(cart_id=_cart_id(request)).first()
+    if not cart:
+        return redirect('cart')
+    cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
+    if not cart_item:
+        return redirect('cart')
     if cart_item.quantity > 1:
         cart_item.quantity -= 1
         cart_item.save()
@@ -46,22 +44,30 @@ def decrement_cart(request, product_id):
     return redirect('cart')
 
 def remove_cart(request, product_id):
-    cart = Cart.objects.get(cart_id=_cart_id(request))
-    cart_item = CartItem.objects.get(cart=cart, product_id=product_id)
-    cart_item.delete()
+    cart = Cart.objects.filter(cart_id=_cart_id(request)).first()
+    if cart:
+        cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
+        if cart_item:
+            cart_item.delete()
     return redirect('cart')
 
-def cart(request, total=0, quantity=0, cart_items=None):
+def cart(request):
+    total = 0
+    quantity = 0
+    cart_items = []
+    cart_id = _cart_id(request)
+
     try:
-        cart = Cart.objects.get(cart_id=_cart_id(request)) # get the cart using the cart_id present in the session
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True) # get all the cart items for the cart
+        cart = Cart.objects.get(cart_id=cart_id)
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True).select_related('product')
         for cart_item in cart_items:
-            total += (cart_item.product.price * cart_item.quantity) # calculate the total price of the cart items
-            quantity += cart_item.quantity # calculate the total quantity of the cart items
-        tax = (2 * total)/100 # calculate the tax
-        grand_total = total + tax # add the tax to the total price
-    except objectDoesNotExist:
+            total += cart_item.product.price * cart_item.quantity
+            quantity += cart_item.quantity
+    except ObjectDoesNotExist:
         pass
+
+    tax = (2 * total) / 100
+    grand_total = total + tax
     context = {
         'total': total,
         'quantity': quantity,
