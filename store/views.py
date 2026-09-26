@@ -3,7 +3,6 @@ from django.http import Http404
 from .models import Product
 from category.models import Category
 
-from carts.models import CartItem
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 
@@ -47,17 +46,18 @@ def product_detail(request, category_slug, product_slug):
     except Product.DoesNotExist:
         raise Http404("Product not found")
 
-    in_cart = False
-    if request.session.session_key:
-        in_cart = CartItem.objects.filter(
-            cart__cart_id=request.session.session_key,
-            product=single_product,
-            is_active=True,
-        ).exists()
+    variation_groups = []
+    for variation in single_product.variations.filter(is_active=True):
+        category_name = variation.get_variation_category_display()
+        group = next((group for group in variation_groups if group['name'] == category_name), None)
+        if group is None:
+            group = {'name': category_name, 'options': []}
+            variation_groups.append(group)
+        group['options'].append(variation)
 
     context = {
         'single_product': single_product,
-        'in_cart': in_cart,
+        'variation_groups': variation_groups,
     }
     return render(request, 'store/product_detail.html', context)
 

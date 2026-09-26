@@ -1,9 +1,21 @@
 from django.contrib import admin
-from .models import Product
+from .models import Product, Variation
 # Register your models here.
+
+class VariationInline(admin.TabularInline):
+    model = Variation
+    extra = 1
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('product_name', 'price', 'category', 'stock', 'is_available', 'created_date', 'modify_date')
     prepopulated_fields = {'slug': ('product_name',)}
+    inlines = (VariationInline,)
+
+class VariationAdmin(admin.ModelAdmin):
+    list_display = ('product', 'variation_category', 'variation_value', 'is_active')
+    list_editable = ('is_active',)
+    list_filter = ('product', 'variation_category', 'is_active')
+    search_fields = ('product__product_name', 'variation_category', 'variation_value')
 
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Variation, VariationAdmin)
