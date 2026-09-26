@@ -6,7 +6,7 @@
 <!-- ========================= SECTION PAGETOP ========================= -->
 <section class="section-pagetop bg">
 <div class="container">
-	<h2 class="title-page">Our Store</h2>
+	<h2 class="title-page">{% if search_query %}Search results for "{{ search_query }}"{% else %}Our Store{% endif %}</h2>
 	
 </div> <!-- container //  -->
 </section>
@@ -149,6 +149,9 @@
 		</figure>
 	</div> <!-- col.// -->
     {% endfor %}
+	{% if not products %}
+	<div class="col-12"><p>No products found{% if search_query %} for "{{ search_query }}"{% endif %}.</p></div>
+	{% endif %}
 </div> <!-- row end.// -->
 
 
@@ -156,7 +159,7 @@
   <ul class="pagination">
 		{% if products.has_previous %}
 			<li class="page-item">
-				<a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a>
+				<a class="page-link" href="?{% if search_query %}q={{ search_query|urlencode }}&amp;{% endif %}page={{ products.previous_page_number }}">Previous</a>
 			</li>
 		{% else %}
 			<li class="page-item disabled"><span class="page-link">Previous</span></li>
@@ -164,13 +167,13 @@
 
 		{% for page_number in products.paginator.page_range %}
 			<li class="page-item {% if products.number == page_number %}active{% endif %}">
-				<a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
+				<a class="page-link" href="?{% if search_query %}q={{ search_query|urlencode }}&amp;{% endif %}page={{ page_number }}">{{ page_number }}</a>
 			</li>
 		{% endfor %}
 
 		{% if products.has_next %}
 			<li class="page-item">
-				<a class="page-link" href="?page={{ products.next_page_number }}">Next</a>
+				<a class="page-link" href="?{% if search_query %}q={{ search_query|urlencode }}&amp;{% endif %}page={{ products.next_page_number }}">Next</a>
 			</li>
 		{% else %}
 			<li class="page-item disabled"><span class="page-link">Next</span></li>
