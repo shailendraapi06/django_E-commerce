@@ -8,8 +8,9 @@
 
 <!-- ============================ COMPONENT 1 ================================= -->
 {% if not cart_items %}
-	<div class="alert alert-info" role="alert">
-		Your cart is empty.
+	<div class="text-center">
+		<p>Your cart is empty.</p>
+		<a href="{% url 'store' %}" class="btn btn-primary">Continue Shopping</a>
 	</div>
 {% else %}
 <div class="row">
@@ -30,7 +31,9 @@
 <tr>
 	<td>
 		<figure class="itemside align-items-center">
-			<div class="aside"><img src="{{ cart_item.product.images.url }}" class="img-sm"></div>
+			{% if cart_item.product.images %}
+			<div class="aside"><img src="{{ cart_item.product.images.url }}" class="img-sm" alt="{{ cart_item.product.product_name }}"></div>
+			{% endif %}
 			<figcaption class="info">
 				<a href="{{ cart_item.product.get_absolute_url }}" class="title text-dark">{{ cart_item.product.product_name }}</a>
 				<p class="text-muted small">

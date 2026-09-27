@@ -92,7 +92,7 @@ def cart(request):
 
     try:
         cart = Cart.objects.get(cart_id=cart_id)
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True).select_related('product')
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True).select_related('product').prefetch_related('variations')
         for cart_item in cart_items:
             total += cart_item.product.price * cart_item.quantity
             quantity += cart_item.quantity

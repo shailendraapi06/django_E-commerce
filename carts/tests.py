@@ -56,6 +56,11 @@ class ProductVariationCartTests(TestCase):
 		self.assertEqual(blue_item.quantity, 1)
 		self.assertTrue(black_item.variations.filter(id=self.medium.id).exists())
 
+		response = self.client.get(reverse('cart'))
+		self.assertContains(response, 'Color: Black')
+		self.assertContains(response, 'Size: Medium')
+		self.assertContains(response, 'Color: Blue')
+
 		self.client.get(reverse('decrement_cart', args=[black_item.id]))
 		black_item.refresh_from_db()
 		blue_item.refresh_from_db()
