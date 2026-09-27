@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<section class="section-content padding-y">
+
+<!-- ============================ COMPONENT REGISTER   ================================= -->
+	<div class="card mx-auto" style="max-width:520px; margin-top:40px;">
+      <article class="card-body">
+		<header class="mb-4"><h4 class="card-title">Sign up</h4></header>
+		<form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+			{{ form.non_field_errors }}
+				<div class="form-row">
+					<div class="col form-group">
+						<label for="{{ form.first_name.id_for_label }}">First name</label>
+					  	{{ form.first_name }}
+						{{ form.first_name.errors }}
+					</div> <!-- form-group end.// -->
+					<div class="col form-group">
+						<label for="{{ form.last_name.id_for_label }}">Last name</label>
+					  	{{ form.last_name }}
+						{{ form.last_name.errors }}
+					</div> <!-- form-group end.// -->
+				</div> <!-- form-row end.// -->
+				<div class="form-group">
+					<label for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+					{{ form.email.errors }}
+				</div> <!-- form-group end.// -->
+				<div class="form-group">
+						<label for="{{ form.phone_number.id_for_label }}">Phone number</label>
+                      {{ form.phone_number }}
+						{{ form.phone_number.errors }}
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-6">
+						<label for="{{ form.password.id_for_label }}">Create password</label>
+					    {{ form.password }}
+						{{ form.password.errors }}
+					</div> <!-- form-group end.// --> 
+					<div class="form-group col-md-6">
+						<label for="{{ form.confirm_password.id_for_label }}">Repeat password</label>
+					    {{ form.confirm_password }}
+						{{ form.confirm_password.errors }}
+					</div> <!-- form-group end.// -->  
+				</div>
+			    <div class="form-group">
+			        <button type="submit" class="btn btn-primary btn-block"> Register  </button>
+			    </div> <!-- form-group// -->      
+			        
+			</form>
+		</article><!-- card-body.// -->
+    </div> <!-- card .// -->
+    <p class="text-center mt-4">Have an account? <a href="">Log In</a></p>
+    <br><br>
+<!-- ============================ COMPONENT REGISTER  END.// ================================= -->
+
+
+</section>
+
+
+
+
+{% endblock %}
