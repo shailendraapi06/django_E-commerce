@@ -1,20 +1,20 @@
-from .models import Cart, CartItem
-from .views import _cart_id
+from django.db.models import Sum
+from .models import CartItem
 
 def counter(request):
-    cart_count = 0
     if 'admin' in request.path:
         return {}
+
+    if request.user.is_authenticated:
+        cart_items = CartItem.objects.filter(user=request.user, is_active=True)
+    elif request.session.session_key:
+        cart_items = CartItem.objects.filter(
+            cart__cart_id=request.session.session_key,
+            is_active=True,
+        )
     else:
-        try:
-            cart = Cart.objects.filter(cart_id=_cart_id(request))
-            cart_items = CartItem.objects.all().filter(cart= (cart[:1]), is_active=True)
-            if cart.exists():
-                cart_items = CartItem.objects.filter(cart=cart.first(), is_active=True)
-                cart_count = sum(item.quantity for item in cart_items)
-            else:
-                cart_count = 0
-        except Cart.DoesNotExist:
-            cart_count = 0
+        return {'cart_count': 0}
+
+    cart_count = cart_items.aggregate(total=Sum('quantity'))['total'] or 0
     return {'cart_count': cart_count}
   

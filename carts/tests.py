@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from accounts.models import Accounts
 from category.models import Category
 from store.models import Product, Variation
 from .models import Cart, CartItem
@@ -76,3 +77,67 @@ class ProductVariationCartTests(TestCase):
 		self.assertEqual(response.status_code, 302)
 		self.assertFalse(Cart.objects.exists())
 		self.assertFalse(CartItem.objects.exists())
+
+	def test_logged_in_cart_groups_variations_and_updates_counter(self):
+		user = Accounts.objects.create_user(
+			first_name='Sam',
+			last_name='Example',
+			username='sam@example.com',
+			email='sam@example.com',
+			password='simple-password-123',
+		)
+		user.is_active = True
+		user.save()
+		self.client.force_login(user)
+		add_url = reverse('add_cart', args=[self.product.id])
+		self.client.post(add_url, {'variation_ids': [self.black.id, self.medium.id]})
+		self.client.post(add_url, {'variation_ids': [self.black.id, self.medium.id]})
+		self.client.post(add_url, {'variation_ids': [self.blue.id, self.medium.id]})
+
+		user_items = CartItem.objects.filter(user=user).order_by('id')
+		self.assertEqual(user_items.count(), 2)
+		self.assertEqual(user_items.get(variations=self.black).quantity, 2)
+		self.assertEqual(user_items.get(variations=self.blue).quantity, 1)
+
+		response = self.client.get(reverse('cart'))
+		self.assertEqual(response.context['quantity'], 3)
+		self.assertEqual(response.context['cart_count'], 3)
+		self.assertContains(response, 'Color: Black')
+		self.assertContains(response, 'Size: Medium')
+		self.assertContains(response, 'Color: Blue')
+
+	def test_logged_in_user_cannot_see_or_change_another_users_cart(self):
+		owner = Accounts.objects.create_user(
+			first_name='Owner',
+			last_name='Example',
+			username='owner@example.com',
+			email='owner@example.com',
+			password='simple-password-123',
+		)
+		other_user = Accounts.objects.create_user(
+			first_name='Other',
+			last_name='Example',
+			username='other@example.com',
+			email='other@example.com',
+			password='simple-password-123',
+		)
+		owner.is_active = True
+		owner.save()
+		other_user.is_active = True
+		other_user.save()
+		cart, _ = Cart.objects.get_or_create(cart_id='owner-cart')
+		item = CartItem.objects.create(
+			product=self.product,
+			cart=cart,
+			user=owner,
+			quantity=1,
+		)
+		self.client.force_login(other_user)
+
+		response = self.client.get(reverse('cart'))
+		self.assertEqual(response.context['quantity'], 0)
+		self.assertEqual(response.context['cart_count'], 0)
+
+		self.client.get(reverse('increment_cart', args=[item.id]))
+		item.refresh_from_db()
+		self.assertEqual(item.quantity, 1)
