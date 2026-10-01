@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 from .models import Cart, CartItem
 from store.models import Product
 
@@ -14,6 +16,16 @@ def _cart_items_for_request(request):
     if request.user.is_authenticated:
         return CartItem.objects.filter(user=request.user, is_active=True)
     return CartItem.objects.filter(cart__cart_id=_cart_id(request), is_active=True)
+
+def _cart_action_redirect(request):
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(next_url)
+    return redirect('cart')
 
 def add_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id, is_available=True)
@@ -61,29 +73,32 @@ def add_cart(request, product_id):
 
     return redirect('cart') # redirect to the cart page
 
+@require_POST
 def increment_cart(request, cart_item_id):
     cart_item = _cart_items_for_request(request).filter(id=cart_item_id).first()
     if cart_item:
         cart_item.quantity += 1
         cart_item.save()
-    return redirect('cart')
+    return _cart_action_redirect(request)
 
+@require_POST
 def decrement_cart(request, cart_item_id):
     cart_item = _cart_items_for_request(request).filter(id=cart_item_id).first()
     if not cart_item:
-        return redirect('cart')
+        return _cart_action_redirect(request)
     if cart_item.quantity > 1:
         cart_item.quantity -= 1
         cart_item.save()
     else:
         cart_item.delete()
-    return redirect('cart')
+    return _cart_action_redirect(request)
 
+@require_POST
 def remove_cart(request, cart_item_id):
     cart_item = _cart_items_for_request(request).filter(id=cart_item_id).first()
     if cart_item:
         cart_item.delete()
-    return redirect('cart')
+    return _cart_action_redirect(request)
 
 def cart(request):
     total = 0

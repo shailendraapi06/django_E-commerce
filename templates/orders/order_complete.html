@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-content padding-y">
+    <div class="container">
+        <div class="card mx-auto" style="max-width: 720px;">
+            <div class="card-body">
+                <h3>Thank you, {{ order.first_name }}!</h3>
+                <p>Your order has been placed.</p>
+                <dl class="row mb-4">
+                    <dt class="col-sm-4">Order number</dt>
+                    <dd class="col-sm-8">{{ order.order_number }}</dd>
+                    <dt class="col-sm-4">Payment</dt>
+                    <dd class="col-sm-8">Cash on delivery</dd>
+                    <dt class="col-sm-4">Total</dt>
+                    <dd class="col-sm-8">${{ order.grand_total|floatformat:2 }}</dd>
+                </dl>
+                <h5>Items</h5>
+                {% for item in order.items.all %}
+                    <p>
+                        {{ item.quantity }} x {{ item.product.product_name }}
+                        {% for variation in item.variations.all %}
+                            <small class="text-muted">{{ variation.get_variation_category_display }}: {{ variation.variation_value }}</small>
+                        {% endfor %}
+                        <span class="float-right">${{ item.get_total|floatformat:2 }}</span>
+                    </p>
+                {% endfor %}
+                <a href="{% url 'store' %}" class="btn btn-primary mt-3">Continue shopping</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

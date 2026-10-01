@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-content padding-y">
+    <div class="container">
+        <h3 class="mb-4">Delivery and payment</h3>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" action="{% url 'place_order' %}">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.first_name.id_for_label }}">First name</label>
+                                    {{ form.first_name }}{{ form.first_name.errors }}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.last_name.id_for_label }}">Last name</label>
+                                    {{ form.last_name }}{{ form.last_name.errors }}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.email.id_for_label }}">Email</label>
+                                    {{ form.email }}{{ form.email.errors }}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.phone.id_for_label }}">Phone</label>
+                                    {{ form.phone }}{{ form.phone.errors }}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.address.id_for_label }}">Address</label>
+                                {{ form.address }}{{ form.address.errors }}
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.city.id_for_label }}">City</label>
+                                    {{ form.city }}{{ form.city.errors }}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.state.id_for_label }}">State</label>
+                                    {{ form.state }}{{ form.state.errors }}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.country.id_for_label }}">Country</label>
+                                    {{ form.country }}{{ form.country.errors }}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.postal_code.id_for_label }}">Postal code</label>
+                                    {{ form.postal_code }}{{ form.postal_code.errors }}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.order_note.id_for_label }}">Order note (optional)</label>
+                                {{ form.order_note }}{{ form.order_note.errors }}
+                            </div>
+                            <hr>
+                            <p class="mb-3"><strong>Payment:</strong> Cash on delivery</p>
+                            <button type="submit" class="btn btn-primary">Place order</button>
+                            <a href="{% url 'cart' %}" class="btn btn-light">Back to cart</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <aside class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Your order</h5>
+                        {% for item in cart_items %}
+                            <p class="mb-2">{{ item.quantity }} x {{ item.product.product_name }}
+                                <span class="float-right">${{ item.sub_total|floatformat:2 }}</span>
+                            </p>
+                        {% endfor %}
+                        <hr>
+                        <p>Subtotal <span class="float-right">${{ subtotal|floatformat:2 }}</span></p>
+                        <p>Tax <span class="float-right">${{ tax|floatformat:2 }}</span></p>
+                        <p class="mb-0"><strong>Total <span class="float-right">${{ grand_total|floatformat:2 }}</span></strong></p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}

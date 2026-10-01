@@ -49,11 +49,19 @@
 					<div class="col"> 
 						<div class="input-group input-spinner">
 							<div class="input-group-prepend">
-							<a href="{% url 'decrement_cart' cart_item.id %}" class="btn btn-light" aria-label="Decrease quantity"> <i class="fa fa-minus"></i> </a>
+							<form method="post" action="{% url 'decrement_cart' cart_item.id %}">
+								{% csrf_token %}
+								<input type="hidden" name="next" value="{{ request.get_full_path }}">
+								<button type="submit" class="btn btn-light" aria-label="Decrease quantity"><i class="fa fa-minus"></i></button>
+							</form>
 							</div>
-							<input type="text" class="form-control"  value="{{ cart_item.quantity }}" min="1" max="10">
+							<input type="text" class="form-control" value="{{ cart_item.quantity }}" readonly aria-label="Quantity">
 							<div class="input-group-append">
-							<a href="{% url 'increment_cart' cart_item.id %}" class="btn btn-light" aria-label="Increase quantity"> <i class="fa fa-plus"></i> </a>
+							<form method="post" action="{% url 'increment_cart' cart_item.id %}">
+								{% csrf_token %}
+								<input type="hidden" name="next" value="{{ request.get_full_path }}">
+								<button type="submit" class="btn btn-light" aria-label="Increase quantity"><i class="fa fa-plus"></i></button>
+							</form>
 							</div>
 						</div> <!-- input-group.// -->
 					</div> <!-- col.// -->
@@ -65,7 +73,11 @@
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right"> 
-	<a href="{% url 'remove_cart' cart_item.id %}" class="btn btn-danger"> Remove</a>
+	<form method="post" action="{% url 'remove_cart' cart_item.id %}">
+		{% csrf_token %}
+		<input type="hidden" name="next" value="{{ request.get_full_path }}">
+		<button type="submit" class="btn btn-danger">Remove</button>
+	</form>
 	</td>
 </tr>
 
@@ -96,7 +108,7 @@
 			<p class="text-center mb-3">
 				<img src="{% static 'images/misc/payments.png' %}" height="26">
 			</p>
-			<button type="button" class="btn btn-primary btn-block" disabled>Checkout</button>
+			<a href="{% url 'checkout' %}" class="btn btn-primary btn-block">Checkout</a>
 			<a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->

@@ -62,7 +62,7 @@ class ProductVariationCartTests(TestCase):
 		self.assertContains(response, 'Size: Medium')
 		self.assertContains(response, 'Color: Blue')
 
-		self.client.get(reverse('decrement_cart', args=[black_item.id]))
+		self.client.post(reverse('decrement_cart', args=[black_item.id]))
 		black_item.refresh_from_db()
 		blue_item.refresh_from_db()
 		self.assertEqual(black_item.quantity, 1)
@@ -138,6 +138,36 @@ class ProductVariationCartTests(TestCase):
 		self.assertEqual(response.context['quantity'], 0)
 		self.assertEqual(response.context['cart_count'], 0)
 
-		self.client.get(reverse('increment_cart', args=[item.id]))
+		self.client.post(reverse('increment_cart', args=[item.id]))
 		item.refresh_from_db()
 		self.assertEqual(item.quantity, 1)
+
+	def test_decrement_and_remove_actions_require_post(self):
+		self.client.post(
+			reverse('add_cart', args=[self.product.id]),
+			{'variation_ids': [self.black.id, self.medium.id]},
+		)
+		cart_item = CartItem.objects.get(product=self.product)
+
+		response = self.client.get(reverse('decrement_cart', args=[cart_item.id]))
+		self.assertEqual(response.status_code, 405)
+		self.assertTrue(CartItem.objects.filter(id=cart_item.id).exists())
+
+		response = self.client.post(
+			reverse('decrement_cart', args=[cart_item.id]),
+			{'next': '/cart/'},
+		)
+		self.assertRedirects(response, '/cart/')
+		self.assertFalse(CartItem.objects.filter(id=cart_item.id).exists())
+
+		self.client.post(
+			reverse('add_cart', args=[self.product.id]),
+			{'variation_ids': [self.black.id, self.medium.id]},
+		)
+		cart_item = CartItem.objects.get(product=self.product)
+		response = self.client.post(
+			reverse('remove_cart', args=[cart_item.id]),
+			{'next': 'https://example.com/'},
+		)
+		self.assertRedirects(response, reverse('cart'))
+		self.assertFalse(CartItem.objects.filter(id=cart_item.id).exists())
