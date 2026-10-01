@@ -1,6 +1,15 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
 from .models import Accounts
+
+
+class EmailAuthenticationForm(AuthenticationForm):
+    username = forms.EmailField(
+        label='Email',
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'autofocus': True}),
+    )
+
 
 class RegistrationForm(forms.ModelForm):
     confirm_password = forms.CharField(

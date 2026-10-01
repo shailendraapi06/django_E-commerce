@@ -1,1 +1,29 @@
-<h2> Login page</h2>
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-content padding-y">
+	<div class="card mx-auto" style="max-width: 420px; margin-top: 40px;">
+		<article class="card-body">
+			<h4 class="card-title mb-4">Sign in</h4>
+			<form method="post">
+				{% csrf_token %}
+				{{ form.non_field_errors }}
+				<div class="form-group">
+					<label for="{{ form.username.id_for_label }}">Email</label>
+					{{ form.username }}
+					{{ form.username.errors }}
+				</div>
+				<div class="form-group">
+					<label for="{{ form.password.id_for_label }}">Password</label>
+					{{ form.password }}
+					{{ form.password.errors }}
+				</div>
+				<input type="hidden" name="next" value="{{ next }}">
+				<button type="submit" class="btn btn-primary btn-block">Sign in</button>
+			</form>
+			<p class="mt-3 mb-0"><a href="{% url 'password_reset' %}">Forgot password?</a></p>
+		</article>
+	</div>
+	<p class="text-center mt-4">New customer? <a href="{% url 'register' %}">Create an account</a></p>
+</section>
+{% endblock %}
